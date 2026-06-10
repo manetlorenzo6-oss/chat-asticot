@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistant vocal IA — MON-SITE.fr</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:#0e0c09;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;
+  padding:24px;
+}
+
+.widget{
+  width:560px;
+  background:#120f0a;
+  border:1px solid rgba(180,140,60,0.25);
+  border-radius:4px;
+  overflow:hidden;
+  box-shadow:0 0 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(180,140,60,0.08);
+}
+
+/* ETOILES */
+.stars-wrap{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.star{
+  position:absolute;border-radius:50%;
+  background:#fff;opacity:0;
+  animation:twinkle var(--d) var(--delay) infinite;
+}
+@keyframes twinkle{
+  0%,100%{opacity:0;transform:scale(0.5)}
+  50%{opacity:var(--op);transform:scale(1)}
+}
+.shooting{
+  position:absolute;
+  width:120px;height:1.5px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#c9a84c,rgba(255,255,255,0));
+  border-radius:2px;
+  opacity:0;
+  animation:shoot var(--sd) var(--sdelay) infinite;
+  transform-origin:left center;
+}
+@keyframes shoot{
+  0%{opacity:0;transform:translateX(-20px) translateY(0) rotate(var(--angle));}
+  10%{opacity:1;}
+  70%{opacity:0.6;}
+  100%{opacity:0;transform:translateX(200px) translateY(60px) rotate(var(--angle));}
+}
+
+/* HEADER */
+.header{
+  padding:22px 24px 18px;
+  border-bottom:1px solid rgba(180,140,60,0.15);
+  display:flex;align-items:center;gap:16px;
+  background:linear-gradient(180deg,#171208 0%,#120f0a 100%);
+  position:relative;
+  overflow:hidden;
+}
+.logo{
+  width:46px;height:46px;border-radius:4px;
+  overflow:hidden;flex-shrink:0;
+  border:1px solid rgba(180,140,60,0.3);
+}
+.logo img{width:100%;height:100%;object-fit:contain;display:block;}
+.htext{flex:1;}
+.htext h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:600;
+  color:#e8d9b0;letter-spacing:0.04em;
+}
+.htext h1 em{font-style:italic;color:#c9a84c;}
+.htext p{font-size:12px;color:#5a4e38;margin-top:4px;letter-spacing:0.12em;text-transform:uppercase;}
+.badge-on{
+  display:flex;align-items:center;gap:5px;
+  font-size:12px;color:#7a6a4a;
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.dot-on{width:5px;height:5px;border-radius:50%;background:#c9a84c;box-shadow:0 0 6px rgba(201,168,76,0.5);animation:blink 2.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* SEPARATEUR OR */
+.sep{
+  text-align:center;padding:10px 0;
+  font-size:11px;color:#4a3e28;
+  letter-spacing:0.4em;
+  display:flex;align-items:center;gap:12px;justify-content:center;
+}
+.sep::before,.sep::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(180,140,60,0.2),transparent);
+  margin:0 8px;
+}
+
+/* VOICE */
+.voice-bar{padding:0 20px 14px;}
+.voice-bar select{
+  width:100%;padding:9px 12px;
+  background:#0e0c09;color:#5a4e38;
+  border:1px solid rgba(180,140,60,0.15);
+  border-radius:2px;font-size:13px;
+  font-family:'Inter',sans-serif;outline:none;cursor:pointer;
+  transition:all 0.2s;letter-spacing:0.03em;
+}
+.voice-bar select:focus{border-color:rgba(180,140,60,0.4);color:#9a8a6a;}
+
+/* MESSAGES */
+.messages{
+  margin:0 20px;
+  height:280px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+  padding:4px 0;
+}
+.messages::-webkit-scrollbar{width:2px;}
+.messages::-webkit-scrollbar-thumb{background:rgba(180,140,60,0.2);border-radius:2px;}
+
+.msg{
+  padding:10px 14px;border-radius:2px;
+  max-width:88%;font-size:15px;line-height:1.6;
+}
+.msg.user{
+  background:#1a1508;color:#c8b888;
+  border:1px solid rgba(180,140,60,0.2);
+  border-left:2px solid rgba(201,168,76,0.5);
+  align-self:flex-end;
+}
+.msg.bot{
+  background:#0f0d08;color:#9a8a6a;
+  border:1px solid rgba(180,140,60,0.1);
+  border-left:2px solid rgba(180,140,60,0.2);
+  align-self:flex-start;
+  font-family:'Cormorant Garamond',serif;font-size:16px;
+}
+.msg.typing{color:#3a3020;font-style:italic;}
+
+/* MIC ZONE */
+.mic-zone{
+  padding:18px 24px 14px;
+  display:flex;align-items:center;gap:18px;
+  border-top:1px solid rgba(180,140,60,0.1);
+  margin-top:14px;
+  background:linear-gradient(0deg,#0e0c09 0%,#120f0a 100%);
+}
+#micBtn{
+  width:72px;height:72px;border-radius:50%;flex-shrink:0;
+  background:#0e0c09;
+  border:1px solid rgba(180,140,60,0.3);
+  color:#c9a84c;font-size:26px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s;
+  box-shadow:0 0 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(180,140,60,0.1);
+}
+#micBtn:hover{border-color:rgba(201,168,76,0.6);box-shadow:0 0 30px rgba(201,168,76,0.1);}
+#micBtn.listening{
+  border-color:rgba(200,80,60,0.6);color:#d06050;
+  background:#140a08;
+  animation:pls 1s ease-in-out infinite;
+  box-shadow:0 0 24px rgba(200,80,60,0.12);
+}
+#micBtn.speaking{
+  border-color:rgba(180,140,60,0.6);color:#c9a84c;
+  background:#121008;
+  box-shadow:0 0 24px rgba(201,168,76,0.15);
+}
+@keyframes pls{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+.mic-info{flex:1;}
+#status{font-size:13px;color:#5a4e38;display:block;margin-bottom:8px;letter-spacing:0.04em;}
+.waves{display:flex;align-items:center;gap:3px;height:16px;}
+.w{width:2px;border-radius:2px;background:#1e1a10;transition:all 0.15s;}
+.w.on{background:rgba(201,168,76,0.5);}
+.w.on:nth-child(1){animation:wv 0.7s 0.00s ease-in-out infinite;}
+.w.on:nth-child(2){animation:wv 0.7s 0.10s ease-in-out infinite;}
+.w.on:nth-child(3){animation:wv 0.7s 0.20s ease-in-out infinite;}
+.w.on:nth-child(4){animation:wv 0.7s 0.15s ease-in-out infinite;}
+.w.on:nth-child(5){animation:wv 0.7s 0.05s ease-in-out infinite;}
+.w.on:nth-child(6){animation:wv 0.7s 0.25s ease-in-out infinite;}
+.w.on:nth-child(7){animation:wv 0.7s 0.10s ease-in-out infinite;}
+@keyframes wv{0%,100%{height:3px}50%{height:14px}}
+
+/* INPUT */
+.input-zone{
+  padding:0 20px 20px;
+  display:flex;gap:8px;
+}
+.input-zone input{
+  flex:1;padding:11px 14px;
+  background:#0e0c09;color:#c8b888;
+  border:1px solid rgba(180,140,60,0.15);
+  border-radius:2px;font-size:14px;
+  font-family:'Inter',sans-serif;outline:none;
+  transition:all 0.2s;letter-spacing:0.02em;
+}
+.input-zone input::placeholder{color:#2e2818;}
+.input-zone input:focus{border-color:rgba(201,168,76,0.35);}
+#sendBtn{
+  width:44px;height:44px;border-radius:2px;flex-shrink:0;
+  background:linear-gradient(135deg,#a07820,#c9a84c);
+  border:none;color:#0e0c09;font-size:18px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+#sendBtn:hover{background:linear-gradient(135deg,#c9a84c,#e8c86c);transform:scale(1.04);}
+
+/* CONTACT BAR */
+.contact-bar{
+  display:flex;gap:8px;padding:10px 20px;
+  border-top:1px solid rgba(180,140,60,0.1);
+  background:#0e0c09;
+}
+.contact-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 8px;border-radius:4px;
+  font-size:12px;font-weight:500;text-decoration:none;
+  letter-spacing:0.03em;transition:all 0.2s;
+  border:1px solid transparent;
+}
+.contact-btn.telegram{
+  background:rgba(0,136,204,0.1);color:#4aabdb;
+  border-color:rgba(0,136,204,0.2);
+}
+.contact-btn.telegram:hover{background:rgba(0,136,204,0.2);border-color:rgba(0,136,204,0.4);}
+.contact-btn.messenger{
+  background:rgba(0,120,255,0.1);color:#5a9eff;
+  border-color:rgba(0,120,255,0.2);
+}
+.contact-btn.messenger:hover{background:rgba(0,120,255,0.2);border-color:rgba(0,120,255,0.4);}
+.contact-btn.email{
+  background:rgba(180,140,60,0.1);color:#c9a84c;
+  border-color:rgba(180,140,60,0.2);
+}
+.contact-btn.email:hover{background:rgba(180,140,60,0.2);border-color:rgba(180,140,60,0.4);}
+
+/* FOOTER */
+.footer{
+  padding:10px 24px;
+  border-top:1px solid rgba(180,140,60,0.1);
+  display:flex;align-items:center;justify-content:space-between;
+  background:#0e0c09;
+}
+.footer-left{font-size:12px;color:#3a3020;letter-spacing:0.06em;text-transform:uppercase;}
+.footer-left a{color:#5a4a2a;text-decoration:none;}
+.footer-left a:hover{color:#c9a84c;}
+.footer-right{font-size:12px;color:#2e2818;letter-spacing:0.08em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <div class="header">
+    <div class="stars-wrap" id="starsWrap"></div>
+    <div class="logo"><img id="logoImg" alt="LOGO"/></div>
+    <div class="htext">
+      <h1>Assistant vocal <em>IA</em></h1>
+    </div>
+    <div class="badge-on"><div class="dot-on"></div>En ligne</div>
+  </div>
+
+  <div class="sep">✦</div>
+
+  <div class="voice-bar">
+    <select id="voiceSelect"><option>Chargement des voix...</option></select>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="msg bot">Bonjour. Je suis votre assistant vocal. Cliquez sur le micro ou tapez votre message pour commencer.</div>
+  </div>
+
+  <div class="mic-zone">
+    <button id="micBtn" title="Parler">🎤</button>
+    <div class="mic-info">
+      <span id="status">Cliquez sur le micro pour parler</span>
+      <div class="waves">
+        <div class="w" style="height:3px"></div>
+        <div class="w" style="height:7px"></div>
+        <div class="w" style="height:12px"></div>
+        <div class="w" style="height:5px"></div>
+        <div class="w" style="height:14px"></div>
+        <div class="w" style="height:8px"></div>
+        <div class="w" style="height:3px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-zone">
+    <input type="text" id="textInput" placeholder="Votre message..."/>
+    <button id="sendBtn">↑</button>
+  </div>
+
+  <div class="contact-bar">
+    <a href="https://t.me/MON_TELEGRAM" target="_blank" class="contact-btn telegram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.26 13.947l-2.94-.92c-.64-.203-.653-.64.136-.954l11.5-4.433c.534-.194 1.003.131.938.581z"/></svg>
+      Telegram
+    </a>
+    <a href="https://m.me/MON_MESSENGER" target="_blank" class="contact-btn messenger">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.163 0 11.527c0 3.635 1.82 6.874 4.666 9.008V24l4.259-2.34c1.138.315 2.343.486 3.575.486 6.627 0 12-5.163 12-11.527C24 5.163 18.627 0 12 0zm1.191 15.528L9.97 12.134l-6.237 3.394 6.861-7.286 3.275 3.394 6.165-3.394-6.843 7.286z"/></svg>
+      Messenger
+    </a>
+    <a href="https://mail.google.com/mail/?view=cm&to=MON-EMAIL@gmail.com" target="_blank" class="contact-btn email">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Email
+    </a>
+  </div>
+  <div class="footer">
+    <div class="footer-left">Propulsé par <a href="https://MON-SITE.fr" target="_blank">Mon Site</a></div>
+    <div class="footer-right">Web Speech · Groq</div>
+  </div>
+
+</div>
+<script>
+const SYSTEM_PROMPT=`Tu es l'assistant vocal de [NOM DU CLIENT], [DESCRIPTION ACTIVITÉ]. Réponds toujours en français, en phrases courtes et naturelles adaptées à la synthèse vocale. Pas de markdown ni de listes à puces, juste du texte fluide.
+
+// ════════════════════════════════════════
+// REMPLACER PAR LES INFOS DU CLIENT :
+// ════════════════════════════════════════
+
+SERVICES : [Décrire les services proposés]
+
+HORAIRES : [Lundi-Vendredi XX:XX - XX:XX, etc.]
+
+TARIFS : [Indiquer les tarifs si applicable]
+
+ADRESSE : [Adresse complète si applicable]
+
+CONTACT : [email@client.fr] — Tél : [0X XX XX XX XX]
+
+// ════════════════════════════════════════
+
+Si on te demande quelque chose hors de ton domaine, oriente vers le contact.
+Sois chaleureux, professionnel et concis.`;
+const LOGO_B64='';  // ← Coller ici votre logo en base64
+document.getElementById('logoImg').src='data:image/jpeg;base64,'+LOGO_B64;
+
+// ETOILES & ETOILES FILANTES
+const wrap=document.getElementById('starsWrap');
+for(let i=0;i<45;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const sz=Math.random()*2+0.5;
+  s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*6}s;--op:${0.3+Math.random()*0.7};`;
+  wrap.appendChild(s);
+}
+for(let i=0;i<5;i++){
+  const sh=document.createElement('div');
+  sh.className='shooting';
+  sh.style.cssText=`left:${Math.random()*60}%;top:${5+Math.random()*60}%;--angle:${15+Math.random()*20}deg;--sd:${5+Math.random()*7}s;--sdelay:${i*1.5+Math.random()*3}s;`;
+  wrap.appendChild(sh);
+}
+const messagesEl=document.getElementById('messages');
+const micBtn=document.getElementById('micBtn');
+const statusEl=document.getElementById('status');
+const voiceSelect=document.getElementById('voiceSelect');
+const textInput=document.getElementById('textInput');
+const sendBtn=document.getElementById('sendBtn');
+const wBars=document.querySelectorAll('.w');
+let voices=[],isListening=false,isSpeaking=false,history=[];
+function setWave(on){wBars.forEach(b=>b.classList.toggle('on',on));}
+function loadVoices(){
+  const all=speechSynthesis.getVoices();
+  voices=all.filter(v=>v.lang.startsWith('fr'));
+  if(!voices.length)voices=all;
+  voiceSelect.innerHTML=voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+}
+loadVoices();speechSynthesis.onvoiceschanged=loadVoices;
+function addMsg(text,role){
+  const d=document.createElement('div');
+  d.className='msg '+role;d.textContent=text;
+  messagesEl.appendChild(d);messagesEl.scrollTop=messagesEl.scrollHeight;
+  return d;
+}
+function speak(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  const v=voices[parseInt(voiceSelect.value)];
+  if(v){u.voice=v;u.lang=v.lang;}else u.lang='fr-FR';
+  u.rate=1.05;
+  u.onstart=()=>{isSpeaking=true;micBtn.className='speaking';micBtn.textContent='🔊';statusEl.textContent='Lecture en cours...';setWave(true);};
+  u.onend=()=>{isSpeaking=false;micBtn.className='';micBtn.textContent='🎤';statusEl.textContent='Cliquez sur le micro pour parler';setWave(false);};
+  speechSynthesis.speak(u);
+}
+async function askBot(msg){
+  history.push({role:'user',content:msg});
+  const t=addMsg('...','bot typing');
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history,systemPrompt:SYSTEM_PROMPT})});
+    const d=await r.json();
+    if(d.error){t.textContent='Erreur : '+d.error;t.classList.remove('typing');return;}
+    history.push({role:'assistant',content:d.reply});
+    t.textContent=d.reply;t.classList.remove('typing');speak(d.reply);
+  }catch(e){t.textContent='Erreur réseau.';t.classList.remove('typing');}
+}
+function send(text){
+  if(!text.trim())return;
+  addMsg(text,'user');textInput.value='';askBot(text);
+}
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if(isMobile){micBtn.disabled=true;micBtn.style.opacity="0.3";statusEl.textContent="Saisie texte uniquement sur mobile";}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null;
+if(!isMobile&&SR){
+  rec=new SR();rec.lang='fr-FR';rec.interimResults=false;
+  rec.onresult=e=>send(e.results[0][0].transcript);
+  rec.onend=()=>{isListening=false;if(!isSpeaking){micBtn.className='';micBtn.textContent='🎤';statusEl.textContent='Cliquez sur le micro pour parler';setWave(false);}};
+  rec.onerror=()=>{isListening=false;micBtn.className='';micBtn.textContent='🎤';setWave(false);};
+}else if(!isMobile){micBtn.disabled=true;statusEl.textContent="Micro non supporté";}
+micBtn.addEventListener('click',()=>{
+  if(!rec)return;
+  if(isListening){rec.stop();return;}
+  speechSynthesis.cancel();
+  isListening=true;micBtn.className='listening';micBtn.textContent='⏹';
+  statusEl.textContent='Écoute en cours...';setWave(true);rec.start();
+});
+sendBtn.addEventListener('click',()=>send(textInput.value));
+textInput.addEventListener('keydown',e=>{if(e.key==='Enter')send(textInput.value);});
+</script>
+</body>
+</html>
